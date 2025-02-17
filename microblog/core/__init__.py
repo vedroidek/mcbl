@@ -2,19 +2,29 @@ import os
 from flask import Flask
 from .database import engine
 from .models import Base
+from routes.user import user_routes
 
 
 def create_app(config_type=os.environ.get("CONFIG_TYPE")):
-    app = Flask(__name__)
+    """Application factory.
+    
+    Keyword arguments:
+    config_type -- development, testing, production
+    Return: 'app' instance
+    """
+    
+    app = Flask(
+        __name__,
+        template_folder="../templates",
+        static_folder="../static"
+        )
 
     app.config.from_object(config_type)
     dsn = app.config["DATABASE_URI"]
 
     initial_db(dsn)
 
-    from routes.user import user_routes
-    app.register_blueprint(user_routes.bp)
-    app.add_url_rule('/', endpoint='index')
+    app.register_blueprint(user_routes.bp, url_prefix="/user")
 
     return app
 
