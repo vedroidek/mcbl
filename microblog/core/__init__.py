@@ -16,7 +16,8 @@ def create_app(config_type=os.environ.get("CONFIG_TYPE")):
     app = Flask(
         __name__,
         template_folder="../templates",
-        static_folder="../static"
+        static_folder="../static",
+        root_path="../"
         )
 
     app.config.from_object(config_type)

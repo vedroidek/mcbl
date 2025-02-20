@@ -34,6 +34,19 @@ class TestingConfig(Config):
     TESTING: bool = True
     DEBUG: bool = True
 
+    def dsn():
+        url_obj = URL.create(
+            "postgresql+psycopg2",
+            username=os.environ["DB_USER"],
+            password=os.environ["DB_PSWD"],
+            host=os.environ["DB_HOST"],
+            port=os.environ["DB_PORT"],
+            database=os.environ["DB_NAME"]
+        )
+        return url_obj
+    
+    DATABASE_URI: str = dsn()
+
 
 class ProductionConfig(Config):
     TESTING: bool = False

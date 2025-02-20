@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from config import DevelopmentConfig as DC
 
 
 def engine(uri):
@@ -12,5 +13,5 @@ def engine(uri):
 
 
 def session():
-    s = sessionmaker(engine)
+    s = sessionmaker(engine(DC.DATABASE_URI), autoflush=True)
     return s
