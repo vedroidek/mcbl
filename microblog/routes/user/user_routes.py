@@ -1,8 +1,11 @@
-from flask import Blueprint
+from flask import Blueprint, session, request
+from microblog.core.repo import AuthorRepo
 
-bp = Blueprint('blog', __name__)
+bp = Blueprint('user', __name__)
 
 
-@bp.route("/", methods=["GET"])
-def index():
-    return "<h1>Hello!</h1>"
+@bp.route("/register", methods=["GET", "POST"])
+def register():
+    data = request.get_json()
+    user = AuthorRepo()
+    return

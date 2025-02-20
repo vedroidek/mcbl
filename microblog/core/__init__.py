@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from .database import engine
 from .models import Base
-from routes.user import user_routes
+from microblog.routes.user import user_routes
 
 
 def create_app(config_type=os.environ.get("CONFIG_TYPE")):
@@ -19,9 +19,8 @@ def create_app(config_type=os.environ.get("CONFIG_TYPE")):
         static_folder="../static",
         root_path="../"
         )
-
     app.config.from_object(config_type)
-    dsn = app.config["DATABASE_URI"]
+    dsn = app.config.get("DATABASE_URI")
 
     initial_db(dsn)
 
