@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from .database import engine
 from .models import Base
-from microblog.routes.user import user_routes
+from routes.user import user_routes
 
 
 def create_app(config_type=os.environ.get("CONFIG_TYPE")):

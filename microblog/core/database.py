@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from microblog.config import DevelopmentConfig as DC
+from config import DevelopmentConfig as DC
 
 
 def engine(uri):
