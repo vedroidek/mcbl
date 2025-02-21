@@ -31,3 +31,6 @@ def create_app(config_type=os.environ.get("CONFIG_TYPE")):
 
 def initial_db(uri):
     Base.metadata.create_all(engine(uri))
+
+def drop_db(uri):
+    Base.metadata.drop_all(engine(uri))
