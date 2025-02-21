@@ -21,6 +21,10 @@ class UserData(BaseModel):
 
 
 class AuthorRepo:
+
+    Session = session()
+    Model = Author
+
     def __init__(self, nickname, email_address, password, id: int=None):
         self.id = id
         self.user = UserData(
@@ -28,13 +32,11 @@ class AuthorRepo:
             email_address = email_address, 
             password = password
             )
-        self.model = Author
-        self.session = session()
 
     def save(self) -> bool:
-        with self.session.begin() as s:
+        with self.Session.begin() as s:
             try:
-                s.add(self.model(**self.user.model_dump()))
+                s.add(self.Model(**self.user.model_dump()))
                 s.commit()
                 return True
             except exc.DatabaseError as e:
@@ -43,14 +45,15 @@ class AuthorRepo:
                 return False
 
     def get_author_by_id(self, id):
-        with self.session.begin() as s:
-            if author_id := (s.get(self.model, id).id):
+        with self.Session.begin() as s:
+            if author_id := (s.get(self.Model, id).id):
                 return author_id
             else:
                 return None
             
-    def get_author_by_nickname(self, nickname):
-        with self.session.begin() as s:
-            stmt = select(self.model).where(self.model.nickname == nickname)
+    @classmethod            
+    def get_author_by_nickname(cls, nickname):
+        with cls.Session.begin() as s:
+            stmt = select(cls.Model).where(cls.Model.nickname == nickname)
             author = s.execute(stmt).fetchone()
             return author.as_scalar()
