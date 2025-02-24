@@ -33,15 +33,16 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING: bool = True
     DEBUG: bool = True
+    FLASK_ENV = "testing"
 
     def dsn():
         url_obj = URL.create(
             "postgresql+psycopg2",
-            username=os.environ["DB_USER"],
-            password=os.environ["DB_PSWD"],
-            host=os.environ["DB_HOST"],
-            port=os.environ["DB_PORT"],
-            database=os.environ["DB_NAME"]
+            username=os.environ["TEST_DB_USER"],
+            password=os.environ["TEST_DB_PSWD"],
+            host=os.environ["TEST_DB_HOST"],
+            port=os.environ["TEST_DB_PORT"],
+            database=os.environ["TEST_DB_NAME"]
         )
         return url_obj
     
