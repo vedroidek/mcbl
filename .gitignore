@@ -3,9 +3,10 @@
 *.log
 scripts/
 .mb_venv
-/__pycache__/
+*/__pycache__/
 __pycache__/
-tests/*
 pytest.*
 microblog/static/*
 microblog/templates/*
+/tests/v
+/tests/__pycache__/*
