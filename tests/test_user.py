@@ -5,9 +5,9 @@ from . import pytest, models, select
         ("data", "expected"),
         [
             ({
-            "nickname": "TestUser",
-            "email_address": "test_email@mail.tu",
-            "password": "test_password"
+            "nickname": "testuser",
+            "email_address": "testtemail@mail.tu",
+            "password": "testpassword"
             }, 201),
             ({
             "nickname": "TestUser",
@@ -81,7 +81,7 @@ def test_register_get(client, data, expected):
         assert response.status_code == expected
 
 
-def test_get_test_user(session, correct_user_data, create_user):
+def test_get_user(session, correct_user_data, create_user):
     with session.begin() as s:
         stmt = select(models.Author).where(
             models.Author.nickname == correct_user_data["nickname"]

@@ -11,6 +11,7 @@ def app():
     yield app
     drop_db(TestingConfig.dsn())
 
+
 @pytest.fixture
 def session():
     engine = create_engine(
@@ -36,10 +37,11 @@ def runner(app):
 @pytest.fixture(scope="module")
 def correct_user_data() -> dict[str:str]:
     return {
-        "nickname": "Testuser",
-        "email_address": "testemail@mail.tu",
-        "password": "test_password"
+        "nickname": "some_user",
+        "email_address": "some_user@mail.tu",
+        "password": "some_password"
     }
+
 
 @pytest.fixture
 def create_user(session, correct_user_data):
@@ -47,4 +49,3 @@ def create_user(session, correct_user_data):
         s.add(models.Author(**correct_user_data))
         s.commit()
         return True
-
