@@ -1,8 +1,9 @@
 from http import HTTPStatus
 from flask import Blueprint, request, jsonify, redirect, url_for, \
     make_response
+from flask.views import MethodView
 from pydantic import ValidationError
-from core.repo import AuthorRepo
+from core.repo import AuthorRepo, GetUserFromDB
 
 bp = Blueprint('user', __name__)
 
@@ -51,3 +52,16 @@ def login():
     # // TO DO! //
     return data
 
+
+class UserAPI(MethodView):
+
+    init_every_request = False
+
+    def __init__(self, model):
+        self.model = model
+
+    def dispatch_request(self, **kwargs):
+        pass
+
+    def get(self, id: int=None, nickname: str=None):
+        pass

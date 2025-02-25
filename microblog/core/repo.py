@@ -21,8 +21,8 @@ class UserData(BaseModel):
 
 class AuthorRepo:
 
-    Session = session()
-    Model = Author
+    session = session()
+    model = Author
 
     def __init__(self, nickname, email_address, password, id: int=None):
         self.id = id
@@ -34,6 +34,7 @@ class AuthorRepo:
             email_address = email_address, 
             password = password
             )
+        self.check_user = UserIsExists(self.nickname)
 
     def save(self) -> bool:
         with self.Session.begin() as s:
@@ -46,24 +47,39 @@ class AuthorRepo:
                 e._message()
                 return False
 
-    def get_author_by_id(self, id):
-        with self.Session.begin() as s:
-            if author_id := (s.get(self.Model, id).id):
-                return author_id
-            else:
-                return None
-            
-    def is_exists(self, nickname: str):
-        if self.get_author_by_nickname(nickname):
+
+class UserIsExists:
+
+    def __init__(
+            self, 
+            user_id: int=None, 
+            nickname: str=None
+            ):
+        self.user_id = user_id
+        self.nickname = nickname
+
+    @classmethod
+    def get_author_by_id(cls, user_id: int=None):
+        if cls.user_id:
+            user_id = cls.user_id
+
+        with cls.session.begin() as s:
+            user = s.get(cls.model, user_id)
+        return user if user else None
+
+    def get_author_by_nickname(self, nickname: str=None):
+        if self.nickname:
+            nickname = self.nickname
+        
+        with self.session.begin() as s:
+            user = s.execute(select(self.model).where(
+                self.model.nickname == nickname
+                )).first()
+        return user if user else None
+    
+    def is_exists(self, nickname: str=None, user_id: int=None):
+        if self.get_author_by_nickname(nickname) or \
+            self.get_author_by_id(user_id):
             return True
         else:
             return False
-
-           
-    def get_author_by_nickname(self, nickname):
-        with self.Session.begin() as s:
-            if author := (s.execute(select(self.Model).where(
-                self.Model.nickname == nickname)).first()):
-                return author
-            else:
-                return None
