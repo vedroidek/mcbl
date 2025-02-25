@@ -1,4 +1,3 @@
-import hashlib
 from sqlalchemy import exc, select
 from pydantic import BaseModel, EmailStr, Field
 from . models import Author
@@ -6,6 +5,7 @@ from .database import session
 
 
 class UserData(BaseModel):
+    
     nickname: str = Field(
         min_length=3, max_length=64, kw_only=True
         )
@@ -15,8 +15,7 @@ class UserData(BaseModel):
         kw_only=True
         )
     password: str = Field(
-        strict=True, min_length=6, max_length=128, kw_only=True,
-        default_factory=lambda: hashlib.sha3_256()
+        strict=True, min_length=6, max_length=128, kw_only=True
         )
 
 
@@ -27,6 +26,9 @@ class AuthorRepo:
 
     def __init__(self, nickname, email_address, password, id: int=None):
         self.id = id
+        self.nickname = nickname
+        self.email_address = email_address
+        self.password = password
         self.user = UserData(
             nickname = nickname, 
             email_address = email_address, 
@@ -51,9 +53,17 @@ class AuthorRepo:
             else:
                 return None
             
-    @classmethod            
-    def get_author_by_nickname(cls, nickname):
-        with cls.Session.begin() as s:
-            stmt = select(cls.Model).where(cls.Model.nickname == nickname)
-            author = s.execute(stmt).fetchone()
-            return author.as_scalar()
+    def is_exists(self, nickname: str):
+        if self.get_author_by_nickname(nickname):
+            return True
+        else:
+            return False
+
+           
+    def get_author_by_nickname(self, nickname):
+        with self.Session.begin() as s:
+            if author := (s.execute(select(self.Model).where(
+                self.Model.nickname == nickname)).first()):
+                return author
+            else:
+                return None
