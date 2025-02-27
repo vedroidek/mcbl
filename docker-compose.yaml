@@ -1,16 +1,20 @@
 version: '3.9'
 
+
 services:
 
   db:
-    image: postgres:16.1-alpine3.19
+    image: postgres:16
+    container_name: mcbl-db
     restart: on-failure
+    cpu_count: 1
     env_file:
       - ./env_vars/postgres.env
     ports:
       - "5432:5432"
     volumes:
       - ./scripts:/docker-entrypoint-initdb.d
+      - ./ext_data:/var/lib/postgresql/data
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
@@ -18,9 +22,28 @@ services:
       retries: 5
       start_period: 30s
       timeout: 10s
+
+  test_db:
+    image: postgres:16.1-alpine3.19
+    container_name: test-db
+    restart: on-failure
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=test_db
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
     
   adminer:
     image: adminer
     restart: on-failure
     ports:
       - "8080:8080"
+    
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+    external: true
+    name: 'data_of_a_microblog'
