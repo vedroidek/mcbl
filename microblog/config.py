@@ -1,4 +1,5 @@
 import os
+import datetime
 from sqlalchemy import URL
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -15,6 +16,7 @@ class DevelopmentConfig(Config):
     TESTING: bool = False
     DEBUG: bool = True
     LOGFILE: str = "./logs/development.log"
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=14)
 
     def dsn():
         url_obj = URL.create(
