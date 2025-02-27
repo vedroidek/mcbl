@@ -1,67 +1,53 @@
 from http import HTTPStatus
-from flask import Blueprint, request, jsonify, redirect, url_for, \
-    make_response
+from flask import request, jsonify
 from flask.views import MethodView
 from pydantic import ValidationError
-from core.repo import AuthorRepo, GetUserFromDB
-
-bp = Blueprint('user', __name__)
-
-
-@bp.route("/index", methods=["GET", "POST"])
-def index():
-    pass
-
-
-@bp.route("/register", methods=["GET", "POST"])
-def register():
-    data = request.get_json()
-
-    if request.method == "POST":
-        try:
-            model = AuthorRepo(
-                nickname=data["nickname"],
-                email_address=data["email_address"],
-                password=data["password"]
-            )
-            if model.is_exists(model.nickname):
-                return jsonify({"status_code": HTTPStatus.CONFLICT,
-                                "message": "User already exists."})
-            else: 
-                model.save()
-                response = make_response(
-                    jsonify({"status_code": HTTPStatus.CREATED})
-                    )
-                response.set_cookie("user", model.user.nickname,
-                                    max_age=3600*24,)
-                return response
-        
-        except ValidationError as err:
-            return jsonify({"status_code": HTTPStatus.BAD_REQUEST,
-                            "message": err.json()})
-        
-    elif request.method == "GET":
-        return redirect(
-            url_for(".login"), code=HTTPStatus.UNAUTHORIZED
-            )
-
-
-@bp.route("/login", methods=["GET", "POST"])
-def login():
-    data = request.get_json()
-    # // TO DO! //
-    return data
+from core.repo import AuthorRepo
+from . import bp
 
 
 class UserAPI(MethodView):
 
     init_every_request = False
 
-    def __init__(self, model):
-        self.model = model
+    def get(self, user_id: int=None):
+        if user_id:
+            user = AuthorRepo.get_author_by_id(user_id=user_id)
+            return jsonify(
+                {"status_code": HTTPStatus.OK,
+                 "message": user}
+            )
+        else:
+            pass
 
-    def dispatch_request(self, **kwargs):
-        pass
+    def post(self):
+        """Method for create new user."""
+        data = request.get_json()
+        try:
+            model = AuthorRepo(
+                nickname=data["nickname"],
+                email_address=data["email_address"],
+                password=data["password"]
+            )
+            if model.is_exists(data["nickname"], data["email_address"]):
+                return jsonify({
+                    "status_code": HTTPStatus.CONFLICT,
+                    "message": "User already exists."
+                    })
+            else: 
+                model.save()
+                return jsonify(
+                    {"status_code": HTTPStatus.CREATED,
+                    "message": f'User {data["nickname"]} was created successfull'}
+                    )
+        
+        except ValidationError as err:
+            return jsonify({"status_code": HTTPStatus.BAD_REQUEST,
+                        "message": err.json()})
 
-    def get(self, id: int=None, nickname: str=None):
-        pass
+
+# --- URL's --- #
+bp.add_url_rule("/<int:user_id>", view_func=UserAPI.as_view("get_user"),
+                methods=["GET"])
+bp.add_url_rule("/", view_func=UserAPI.as_view("create_user"),
+                methods=["GET", "POST"])

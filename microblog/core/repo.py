@@ -1,4 +1,4 @@
-from sqlalchemy import exc, select
+from sqlalchemy import exc, select, or_
 from pydantic import BaseModel, EmailStr, Field
 from . models import Author
 from .database import session
@@ -20,66 +20,52 @@ class UserData(BaseModel):
 
 
 class AuthorRepo:
-
-    session = session()
+    """It accepts the data transferred by the user and, 
+    if they are correctly, retains in the database.
+    
+    Keyword arguments:
+    nickname -- str 
+    email_address -- str (The email address is compared
+      with a regular expression template)
+    password -- str (len between 6 and 128 chars)
+    """
     model = Author
+    session = session()
 
-    def __init__(self, nickname, email_address, password, id: int=None):
-        self.id = id
-        self.nickname = nickname
-        self.email_address = email_address
-        self.password = password
+    def __init__(self, nickname, email_address, password):
         self.user = UserData(
             nickname = nickname, 
             email_address = email_address, 
             password = password
             )
-        self.check_user = UserIsExists(self.nickname)
-
-    def save(self) -> bool:
-        with self.Session.begin() as s:
-            try:
-                s.add(self.Model(**self.user.model_dump()))
-                s.commit()
-                return True
-            except exc.DatabaseError as e:
-                s.rollback()
-                e._message()
-                return False
-
-
-class UserIsExists:
-
-    def __init__(
-            self, 
-            user_id: int=None, 
-            nickname: str=None
-            ):
-        self.user_id = user_id
-        self.nickname = nickname
 
     @classmethod
-    def get_author_by_id(cls, user_id: int=None):
-        if cls.user_id:
-            user_id = cls.user_id
-
+    def get_all_users(cls):
         with cls.session.begin() as s:
-            user = s.get(cls.model, user_id)
+            s.execute()
+
+    @classmethod
+    def get_author_by_id(cls, user_id: int):
+        with cls.session.begin() as s:
+            user = s.get(cls.model, user_id).as_dict()
         return user if user else None
 
-    def get_author_by_nickname(self, nickname: str=None):
-        if self.nickname:
-            nickname = self.nickname
-        
+    def is_exists(self, nickname: str, email_address: str):
         with self.session.begin() as s:
-            user = s.execute(select(self.model).where(
-                self.model.nickname == nickname
-                )).first()
+            user = s.execute(
+                select(self.model).filter(
+                    or_(self.model.nickname == nickname, 
+                        self.model.email_address == email_address))
+                        ).first()
+            
         return user if user else None
-    
-    def is_exists(self, nickname: str=None, user_id: int=None):
-        if self.get_author_by_nickname(nickname) or \
-            self.get_author_by_id(user_id):
-            return True
-        else:
-            return False
+
+    def save(self) -> str:
+        with self.session.begin() as s:
+            try:
+                s.add(self.model(**self.user.model_dump()))
+                s.commit()
+                return "The data is saved successfully."
+            except exc.DatabaseError as e:
+                s.rollback()
+                return e._message()
