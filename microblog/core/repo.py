@@ -53,6 +53,7 @@ class AuthorRepo:
 
     @classmethod
     def get_all_users(cls) -> list:
+        """Get a list of all users."""
         with cls.session.begin() as s:
             stmt = s.execute(select(cls.model)).scalars().all()
             users = [i.as_dict() for i in stmt]
@@ -80,7 +81,7 @@ class AuthorRepo:
                 return "User with id={} not found.".format(user_id)
 
     @classmethod    
-    def update_author(cls, user_id: int, **new_data):
+    def update_author(cls, user_id: int, new_data: dict):
         """Updates user data.
         
         Keyword arguments:
@@ -94,25 +95,23 @@ class AuthorRepo:
         """
         
         with cls.session.begin() as s:
-            if user := (s.get(cls.model, user_id)):
-                try:
-                    ### TODO
-                    stmt = update(cls.model).where(cls.model.id == user_id),{
-                        "id": user.id,
-                        "email_address": new_data["email_address"],
-                        "nickname": new_data["nickname"],
-                        "password": new_data["password"]
-                        }
-                    s.execute(stmt)
-                    s.commit()
-                    return "The data is updated successfully."
-                except exc.DatabaseError as e:
-                    s.rollback()
-                    return e._message()
-            else:
-                return "User with id={} not found.".format(user_id)
+            try:
+                ### TODO
+                stmt = update(cls.model).where(cls.model.id == user_id).values(
+                    nickname = new_data["nickname"],
+                    email_address = new_data["email_address"],
+                    password = gen_hash(new_data["password"])
+                )
+                s.execute(stmt)
+                s.commit()
+                return "The data is updated successfully."
+            except exc.DatabaseError as e:
+                s.rollback()
+                return e._message()
 
     def is_exists(self, nickname: str, email_address: str):
+        """Checking for a user database with 
+        such nickname/email address."""
         with self.session.begin() as s:
             user = s.execute(
                 select(self.model).filter(

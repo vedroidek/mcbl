@@ -53,7 +53,7 @@ class UserAPI(MethodView):
 
     def patch(self, user_id):
         data = request.get_json()
-        mv = AuthorRepo.update_author(user_id, **data)
+        mv = AuthorRepo.update_author(user_id, data)
         return mv
         
     def delete(self, user_id):
