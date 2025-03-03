@@ -1,7 +1,19 @@
-from sqlalchemy import exc, select, or_
+import hashlib
+import os
+from sqlalchemy import exc, select, or_, update
 from pydantic import BaseModel, EmailStr, Field
 from . models import Author
 from .database import session
+
+
+def gen_hash(password: str):
+    key = hashlib.pbkdf2_hmac(
+        hash_name="sha256", 
+        password=password.encode("utf-8"), 
+        salt=os.urandom(32),
+        iterations=20000
+        )
+    return key
 
 
 class UserData(BaseModel):
@@ -14,7 +26,7 @@ class UserData(BaseModel):
         pattern="^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
         kw_only=True
         )
-    password: str = Field(
+    password: bytes = Field(
         strict=True, min_length=6, max_length=128, kw_only=True
         )
 
@@ -40,15 +52,65 @@ class AuthorRepo:
             )
 
     @classmethod
-    def get_all_users(cls):
+    def get_all_users(cls) -> list:
         with cls.session.begin() as s:
-            s.execute()
+            stmt = s.execute(select(cls.model)).scalars().all()
+            users = [i.as_dict() for i in stmt]
+            return users
 
     @classmethod
-    def get_author_by_id(cls, user_id: int):
+    def get_author_by_id(cls, user_id: int) -> dict|None:
         with cls.session.begin() as s:
-            user = s.get(cls.model, user_id).as_dict()
-        return user if user else None
+            if user := (s.get(cls.model, user_id)):
+                resp = user.as_dict()
+            return resp if user else f"Not found user with id={user_id}"
+
+    @classmethod    
+    def delete_author(cls, user_id: int):
+        with cls.session.begin() as s:
+            if user := (s.get(cls.model, user_id)):
+                try:
+                    s.delete(user)
+                    s.commit()
+                    return "The data is deleted successfully."
+                except exc.DatabaseError as e:
+                    s.rollback()
+                    return e._message()
+            else:
+                return "User with id={} not found.".format(user_id)
+
+    @classmethod    
+    def update_author(cls, user_id: int, **new_data):
+        """Updates user data.
+        
+        Keyword arguments:
+        user_id -- int
+        new_data -- dict[str|str] with items:
+            '{
+            nickname: new_nickname
+            email_address: new_email_address,
+            password: new_password
+            }'
+        """
+        
+        with cls.session.begin() as s:
+            if user := (s.get(cls.model, user_id)):
+                try:
+                    ### TODO
+                    stmt = update(cls.model).where(cls.model.id == user_id),{
+                        "id": user.id,
+                        "email_address": new_data["email_address"],
+                        "nickname": new_data["nickname"],
+                        "password": new_data["password"]
+                        }
+                    s.execute(stmt)
+                    s.commit()
+                    return "The data is updated successfully."
+                except exc.DatabaseError as e:
+                    s.rollback()
+                    return e._message()
+            else:
+                return "User with id={} not found.".format(user_id)
 
     def is_exists(self, nickname: str, email_address: str):
         with self.session.begin() as s:

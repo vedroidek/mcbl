@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated, List
 
-from sqlalchemy import ForeignKey, String, Text, func
+from sqlalchemy import ForeignKey, String, Text, func, LargeBinary
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -21,7 +21,7 @@ class Admin(Base):
         nullable=False,
         unique=True,
     )
-    password: Mapped[str] = mapped_column(String(128), nullable=False)
+    password: Mapped[bytes] = mapped_column(LargeBinary(128), nullable=False)
 
 
 class Author(Base):
@@ -32,7 +32,7 @@ class Author(Base):
         String(32), unique=True, nullable=False)
     email_address: Mapped[str] = mapped_column(
         String(64), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(String(128), nullable=False)
+    password: Mapped[bytes] = mapped_column(LargeBinary(128), nullable=False)
     registered: Mapped[datetime] = mapped_column(
         server_default=func.current_timestamp()
     )
@@ -45,7 +45,18 @@ class Author(Base):
     comments: Mapped[List["Comment"]] = relationship(back_populates="author")
 
     def __repr__(self) -> str:
-        return f"Author(id={self.id!r}, fullname={self.nickname!r})"
+        return f"Author(id={self.id!r}, nickname={self.nickname!r})"
+    
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "nickname": self.nickname,
+            "registered": self.registered,
+            "email_address": self.email_address,
+            "person_data": self.person_data,
+            "posts": self.posts,
+            "comments": self.comments
+        }
 
 
 class PersonData(Base):
