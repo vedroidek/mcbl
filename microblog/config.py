@@ -35,7 +35,7 @@ class TestingConfig(Config):
 
 
 confdict = {
-    "dev": DeprecationWarning,
+    "dev": DevelopmentConfig,
     "test": TestingConfig,
     "prod": ProductionConfig
     }
