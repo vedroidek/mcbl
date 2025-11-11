@@ -1,4 +1,5 @@
 import os
+import logging
 from logging.config import dictConfig
 from datetime import timedelta
 from sqlalchemy.engine import URL
@@ -21,14 +22,16 @@ class Config(object):
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {
-                "default": {
+                "colored": {
+                    "()": ColoredFormatter,
                     "format": Config.LOG_FORMAT,
+                    "datefmt": "%d-%m-%Y %H:%M:%S",
                 },
             },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
-                    "formatter": "default",
+                    "formatter": "colored",
                     "stream": "ext://sys.stdout",
                 },
             },
@@ -83,3 +86,22 @@ confdict = {
     "prod": ProductionConfig,
     "default": DevelopmentConfig,
     }
+
+
+COLORS = {
+    'DEBUG': '\033[36m',
+    'INFO': '\033[32m',
+    'WARNING': '\033[33m',
+    'ERROR': '\033[31m',
+    'CRITICAL': '\033[35m',
+    'RESET': '\033[0m',
+}
+
+
+class ColoredFormatter(logging.Formatter):
+    def format(self, record):
+        levelname = record.levelname
+        if levelname in COLORS:
+            record.levelname = f"{COLORS[levelname]}{levelname}{COLORS['RESET']}"
+            record.msg = f"{COLORS[levelname]}{record.msg}{COLORS['RESET']}"
+        return super().format(record)
