@@ -1,4 +1,4 @@
-import logging  # noqa: F401
+import logging
 from flask import Flask
 from .config import confdict
 from .routes import comm_bp, user_bp
