@@ -1,6 +1,10 @@
+import os
 from microblog import create_app
 
 
+conf_type = os.environ.get("CONFTYPE", None)
+app = create_app(conf_type)
+
+
 if __name__ == "__main__":
-    app = create_app("dev")
     app.run()
