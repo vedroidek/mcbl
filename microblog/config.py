@@ -45,6 +45,11 @@ class Config(object):
                     "handlers": ["console"],
                     "propagate": False,
                 },
+                "sqlalchemy.engine": {
+                    "level": "WARNING",
+                    "handlers": ["console"],
+                    "propagate": False,
+                }
             },
         }
 
