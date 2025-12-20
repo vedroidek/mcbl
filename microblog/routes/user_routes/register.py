@@ -1,6 +1,6 @@
 from http import HTTPStatus
 from . import logger
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, Response
 from microblog.core.db_connect import Session
 from microblog.services.user.register import register_new_user
 
@@ -9,7 +9,7 @@ user_bp = Blueprint('user', __name__)
 
 
 @user_bp.route("/register", methods=["POST"])
-def register() -> dict[str:HTTPStatus]:
+def register() -> Response:
     """Handle user registration with JSON data.
 
     Args:

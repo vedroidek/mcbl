@@ -1,11 +1,13 @@
 import logging
 from flask import Flask
+from flask_cors import CORS
 from .config import confdict
 from .routes import comm_bp, user_bp
 
 
 def create_app(config_name=None):
     app = Flask(__name__)
+    CORS(app, origins=["http://localhost:5050"], methods=["GET", "POST"])
 
     if not config_name:
         app.config.from_object(confdict["default"])
