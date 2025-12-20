@@ -5,11 +5,33 @@ from datetime import timedelta
 from sqlalchemy.engine import URL
 
 
-class Config(object):
+COLORS = {
+    'DEBUG': '\033[36m',
+    'INFO': '\033[32m',
+    'WARNING': '\033[33m',
+    'ERROR': '\033[31m',
+    'CRITICAL': '\033[35m',
+    'RESET': '\033[0m',
+}
+
+
+class ColoredFormatter(logging.Formatter):
+    def format(self, record):
+        levelname = record.levelname
+        if levelname in COLORS:
+            record.levelname = f"{COLORS[levelname]}{levelname}{COLORS['RESET']}"
+            record.msg = f"{COLORS[levelname]}{record.msg}{COLORS['RESET']}"
+        return super().format(record)
+
+
+class Config(object):  # MAIN CONFIG
     TESTING = False
     DEBUG = False
 
-    LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+    valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+    LOG_LEVEL = log_level if log_level in valid_levels else valid_levels[1]
+
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     @staticmethod
@@ -47,6 +69,11 @@ class Config(object):
                 },
                 "sqlalchemy.engine": {
                     "level": "WARNING",
+                    "handlers": ["console"],
+                    "propagate": False,
+                },
+                "flask_cors": {
+                    "level": "DEBUG",
                     "handlers": ["console"],
                     "propagate": False,
                 }
@@ -91,23 +118,3 @@ confdict = {
     "prod": ProductionConfig,
     "default": DevelopmentConfig,
     }
-
-
-COLORS = {
-    'DEBUG': '\033[36m',
-    'INFO': '\033[32m',
-    'WARNING': '\033[33m',
-    'ERROR': '\033[31m',
-    'CRITICAL': '\033[35m',
-    'RESET': '\033[0m',
-}
-
-
-class ColoredFormatter(logging.Formatter):
-    def format(self, record):
-        levelname = record.levelname
-        if levelname in COLORS:
-            record.levelname = f"{COLORS[levelname]}{levelname} \
-                {COLORS['RESET']}"
-            record.msg = f"{COLORS[levelname]}{record.msg}{COLORS['RESET']}"
-        return super().format(record)
