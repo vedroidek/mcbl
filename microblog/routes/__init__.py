@@ -1,4 +1,4 @@
-from .user_routes.user_routes import user_bp
+from .user_routes.register import user_bp
 from .common import comm_bp
 
 
