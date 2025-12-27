@@ -1,11 +1,11 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from microblog.config import confdict
+from microblog import config
 
 
 Engine = create_engine(
-    url=confdict[os.environ.get("CONFTYPE")].DATABASE_URI,
+    url=config.confdict[os.environ["CONFTYPE"]].DATABASE_URI,
     echo=True,
     pool_size=10
     )
