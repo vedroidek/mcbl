@@ -1,5 +1,3 @@
-# Use postgres/example user/password credentials
-
 services:
 
   # web:
@@ -38,10 +36,9 @@ services:
   #         cpus: '0.25'
 
   db:
-    image: postgres
+    image: postgres:16
     container_name: microblog_db
     restart: always
-    # set shared memory limit when using docker compose
     shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
