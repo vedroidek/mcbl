@@ -41,3 +41,12 @@ class User(Base):
     def __repr__(self) -> str:
         return f"User(id={self.id!r},\nname={self.name!r}, \
         registered_at={self.registered_at!r})\n\n"
+    
+    def as_dict(self) -> dict:
+        return dict(
+            id=self.id,
+            name=self.name,
+            email_address=self.email_address,
+            registered_at=self.registered_at.strftime("%H:%M:%S - %d.%m.%Y")
+        )
+
