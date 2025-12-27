@@ -45,10 +45,10 @@ def add_user() -> Response:
     data = request.get_json()
     resp_status = HTTPStatus.BAD_REQUEST
 
-    if not all([data["name"], data["email_address"], data["password_hash"]]):
+    if not all([data["name"], data["email"], data["password"]]):
         is_success = "Required data missing."
     else:
-        register_new_user(Session(), data["name"], data["email"], data["password_hash"])
+        register_new_user(Session(), data["name"], data["email"], data["password"])
         resp_status = HTTPStatus.CREATED
         is_success = True
         logger.info("new user was created")
