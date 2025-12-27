@@ -40,13 +40,12 @@ def get_user(id: int) -> Response:
 @user_bp.route("/", methods=["POST"])
 def add_user() -> Response:
     is_success = False
-    resp_status = ""
+    resp_status = HTTPStatus.BAD_REQUEST
 
     data = request.get_json()
 
     if not all([data["name"], data["email_address"], data["password_hash"]]):
         is_success = "Required data missing."
-        resp_status = HTTPStatus.BAD_REQUEST
     else:
         register_new_user(Session(), data["name"], data["email"], data["password_hash"])
         resp_status = HTTPStatus.CREATED
